@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f4c75" />
+  <meta name="description" content="Sistema de Historia Clínica Electrónica con CRUD de pacientes y generación de PDF" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="HCE" />
+
+  <title>Historia Clínica Electrónica</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- jsPDF desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <!-- Lógica de la app -->
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+<!-- ====================================================
+     PANTALLA DE LOGIN
+     ==================================================== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-icon">🏥</span>
+      <h1>Historia Clínica Electrónica</h1>
+      <p>Sistema de Gestión Médica</p>
+    </div>
+
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label for="loginUsername">Usuario <span class="required">*</span></label>
+        <input type="text" id="loginUsername" class="form-control"
+               placeholder="doctor / admin / medico"
+               autocomplete="username" required />
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Contraseña <span class="required">*</span></label>
+        <input type="password" id="loginPassword" class="form-control"
+               placeholder="Ingresa tu contraseña"
+               autocomplete="current-password" required />
+      </div>
+      <button type="submit" id="btnLogin" class="btn btn-primary btn-block" style="margin-top:.5rem">
+        Ingresar
+      </button>
+    </form>
+
+    <p style="text-align:center;margin-top:1.25rem;font-size:.78rem;color:#8899aa">
+      Usuarios demo: <strong>doctor</strong> / <strong>doctor123</strong>
+    </p>
+  </div>
+</div>
+
+
+<!-- ====================================================
+     APP SHELL (visible tras login)
+     ==================================================== -->
+<div id="appShell" class="hidden">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="nav-icon">🏥</span>
+      <span>HCE</span>
+    </div>
+    <div class="navbar-actions">
+      <span class="user-badge" id="userBadge"></span>
+      <button id="btnLogout" class="btn btn-sm">Salir</button>
+    </div>
+  </nav>
+
+  <!-- Tab navigation -->
+  <nav class="tab-nav" role="tablist">
+    <button class="tab-btn active" role="tab" data-tab="tabPacientes">
+      <span class="tab-icon">👥</span>
+      Pacientes
+    </button>
+    <button class="tab-btn" role="tab" data-tab="tabHistorial">
+      <span class="tab-icon">📋</span>
+      Historial
+    </button>
+  </nav>
+
+  <!-- Contenido -->
+  <main class="app-content">
+
+    <!-- ── TAB: PACIENTES ── -->
+    <section id="tabPacientes" class="tab-panel active" role="tabpanel">
+
+      <!-- Estadísticas -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">Pacientes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statHistories">0</div>
+          <div class="stat-label">Consultas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statToday">0</div>
+          <div class="stat-label">Hoy</div>
+        </div>
+      </div>
+
+      <!-- Buscar + Agregar -->
+      <div class="search-bar">
+        <input type="search" id="searchInput" class="form-control"
+               placeholder="🔍 Buscar por nombre, cédula…"
+               aria-label="Buscar pacientes" />
+        <button id="btnAddPatient" class="btn btn-primary">+ Nuevo</button>
+      </div>
+
+      <!-- Lista de pacientes -->
+      <div id="patientsList" class="patients-list"></div>
+    </section>
+
+
+    <!-- ── TAB: HISTORIAL ── -->
+    <section id="tabHistorial" class="tab-panel" role="tabpanel">
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-body" style="padding:.9rem">
+          <input type="search" id="historySearch" class="form-control"
+                 placeholder="🔍 Buscar por paciente, diagnóstico, motivo…"
+                 aria-label="Buscar en historial" />
+        </div>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+
+  </main>
+</div><!-- /appShell -->
+
+
+<!-- ====================================================
+     TOAST CONTAINER
+     ==================================================== -->
+<div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+
+<!-- ====================================================
+     MODAL — PACIENTE (Crear / Editar)
+     ==================================================== -->
+<div id="patientModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="patientModalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="patientModalTitle">Nuevo Paciente</h2>
+      <button class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="patientForm" novalidate>
+        <div class="form-group">
+          <label for="pNombre">Nombre completo <span class="required">*</span></label>
+          <input type="text" id="pNombre" name="nombre" class="form-control"
+                 placeholder="Ej. Juan Pérez García" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pCedula">Cédula / ID</label>
+            <input type="text" id="pCedula" name="cedula" class="form-control"
+                   placeholder="Ej. 1234567890" />
+          </div>
+          <div class="form-group">
+            <label for="pSexo">Sexo</label>
+            <select id="pSexo" name="sexo" class="form-control">
+              <option value="">— Seleccionar —</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pFechaNac">Fecha de nacimiento</label>
+            <input type="date" id="pFechaNac" name="fechaNacimiento" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label for="pTelefono">Teléfono</label>
+            <input type="tel" id="pTelefono" name="telefono" class="form-control"
+                   placeholder="Ej. 0991234567" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="pEmail">Email</label>
+          <input type="email" id="pEmail" name="email" class="form-control"
+                 placeholder="correo@ejemplo.com" />
+        </div>
+        <div class="form-group">
+          <label for="pDireccion">Dirección</label>
+          <input type="text" id="pDireccion" name="direccion" class="form-control"
+                 placeholder="Calle, ciudad, provincia" />
+        </div>
+        <div class="form-group">
+          <label for="pAlergias">Alergias conocidas</label>
+          <textarea id="pAlergias" name="alergias" class="form-control" rows="2"
+                    placeholder="Ej. Penicilina, Ibuprofeno…"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal>Cancelar</button>
+      <button id="btnSavePatient" class="btn btn-primary">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ====================================================
+     MODAL — HISTORIA CLÍNICA
+     ==================================================== -->
+<div id="historyModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title" id="historyModalTitle">Nueva Consulta</h2>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.15rem">
+          <span id="historyPatientName">—</span> &nbsp;·&nbsp; <span id="historyDateLabel">—</span>
+        </div>
+      </div>
+      <button class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="historyForm" novalidate>
+      <input type="hidden" id="historyPatientId" />
+
+      <p class="section-title">Signos Vitales y Antropometría</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fieldPeso">Peso (kg)</label>
+          <input type="number" id="fieldPeso" class="form-control"
+                 placeholder="Ej. 70.5" min="1" max="300" step="0.1" />
+        </div>
+        <div class="form-group">
+          <label for="fieldTalla">Talla (m)</label>
+          <input type="number" id="fieldTalla" class="form-control"
+                 placeholder="Ej. 1.70" min="0.5" max="2.5" step="0.01" />
+        </div>
+      </div>
+
+      <!-- IMC auto calculado -->
+      <div id="imcDisplay" class="imc-display hidden" style="margin-bottom:1rem">
+        <div>
+          <div style="font-size:.78rem;color:var(--text-muted)">IMC calculado</div>
+          <div class="imc-value" id="imcValue">—</div>
+          <div class="imc-label">kg/m²</div>
+        </div>
+        <span class="imc-cat" id="imcCat">—</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fieldPA">Presión Arterial</label>
+          <input type="text" id="fieldPA" class="form-control" placeholder="Ej. 120/80 mmHg" />
+        </div>
+        <div class="form-group">
+          <label for="fieldFC">Frec. Cardíaca (lpm)</label>
+          <input type="number" id="fieldFC" class="form-control" placeholder="Ej. 72" min="20" max="300" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fieldTemp">Temperatura (°C)</label>
+          <input type="number" id="fieldTemp" class="form-control" placeholder="Ej. 36.5" min="30" max="45" step="0.1" />
+        </div>
+        <div class="form-group">
+          <label for="fieldSatO2">Saturación O₂ (%)</label>
+          <input type="number" id="fieldSatO2" class="form-control" placeholder="Ej. 98" min="50" max="100" />
+        </div>
+      </div>
+
+      <p class="section-title">Consulta</p>
+      <div class="form-group">
+        <label for="fieldMotivo">Motivo de consulta <span class="required">*</span></label>
+        <textarea id="fieldMotivo" class="form-control" rows="2"
+                  placeholder="Descripción del motivo de la visita…"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fieldEnfActual">Enfermedad actual</label>
+        <textarea id="fieldEnfActual" class="form-control" rows="2"
+                  placeholder="Descripción de la enfermedad actual…"></textarea>
+      </div>
+
+      <p class="section-title">Antecedentes</p>
+      <div class="form-group">
+        <label for="fieldAntPersonal">Antecedentes personales</label>
+        <textarea id="fieldAntPersonal" class="form-control" rows="2"
+                  placeholder="Enfermedades previas, cirugías, hospitalizaciones…"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fieldAntFamiliar">Antecedentes familiares</label>
+        <textarea id="fieldAntFamiliar" class="form-control" rows="2"
+                  placeholder="Diabetes, hipertensión, cáncer en familia…"></textarea>
+      </div>
+
+      <p class="section-title">Examen y Diagnóstico</p>
+      <div class="form-group">
+        <label for="fieldExFisico">Examen físico</label>
+        <textarea id="fieldExFisico" class="form-control" rows="3"
+                  placeholder="Hallazgos del examen físico…"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fieldDiagnostico">Diagnóstico</label>
+        <textarea id="fieldDiagnostico" class="form-control" rows="2"
+                  placeholder="CIE-10 u otros diagnósticos…"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fieldTratamiento">Tratamiento</label>
+        <textarea id="fieldTratamiento" class="form-control" rows="3"
+                  placeholder="Medicamentos, dosis, indicaciones…"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fieldObservaciones">Observaciones</label>
+        <textarea id="fieldObservaciones" class="form-control" rows="2"
+                  placeholder="Notas adicionales, próxima cita…"></textarea>
+      </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal>Cancelar</button>
+      <button id="btnSaveHistory" class="btn btn-primary">💾 Guardar Historia</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ====================================================
+     MODAL — Confirmar eliminar PACIENTE
+     ==================================================== -->
+<div id="confirmDeleteModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <h2 class="modal-title">⚠️ Eliminar Paciente</h2>
+      <button class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>¿Confirmas que deseas eliminar a <strong id="deletePatientName"></strong> y todas sus historias clínicas? Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal>Cancelar</button>
+      <button id="btnConfirmDelete" class="btn btn-danger">🗑 Eliminar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ====================================================
+     MODAL — Confirmar eliminar HISTORIA
+     ==================================================== -->
+<div id="confirmDeleteHistoryModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <h2 class="modal-title">⚠️ Eliminar Historia</h2>
+      <button class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>¿Confirmas que deseas eliminar esta historia clínica? Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal>Cancelar</button>
+      <button id="btnConfirmDeleteHistory" class="btn btn-danger">🗑 Eliminar</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

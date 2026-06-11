@@ -1,0 +1,20 @@
+{
+  "name": "Historia Clínica Electrónica",
+  "short_name": "HCE",
+  "description": "Sistema de Historia Clínica Electrónica con CRUD de pacientes y generación de PDF",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f4c75",
+  "theme_color": "#0f4c75",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["medical", "health", "productivity"]
+}
