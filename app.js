@@ -15,7 +15,7 @@ const CONFIG = {
     HISTORIES: 'hce_histories',
   },
   DEMO_USERS: [
-    { username: 'doctor',  password: 'doctor123',  nombre: 'Dr. García López',    rol: 'Médico General' },
+    { username: 'doctor',  password: 'doctor123',  nombre: 'Dr. Yasmine Aurich Rojas',    rol: 'Médico General' },
     { username: 'admin',   password: 'admin123',   nombre: 'Administrador',       rol: 'Administrador' },
     { username: 'medico',  password: 'medico123',  nombre: 'Dra. Ramírez Torres', rol: 'Internista' },
   ],
