@@ -15,7 +15,7 @@ const CONFIG = {
     HISTORIES: 'hce_histories',
   },
   DEMO_USERS: [
-    { username: 'doctor',  password: 'doctor123',  nombre: 'Dr. Yasmine Aurich Rojas',    rol: 'Médico General' },
+    { username: 'doctor',  password: 'doctor123',  nombre: 'Dr. García López',    rol: 'Médico General' },
     { username: 'admin',   password: 'admin123',   nombre: 'Administrador',       rol: 'Administrador' },
     { username: 'medico',  password: 'medico123',  nombre: 'Dra. Ramírez Torres', rol: 'Internista' },
   ],
@@ -289,6 +289,7 @@ function generatePDF(history) {
     ['ENFERMEDAD ACTUAL',         history.enfermedadActual],
     ['ANTECEDENTES PERSONALES',   history.antecedentePersonal],
     ['ANTECEDENTES FAMILIARES',   history.antecedenteFamiliar],
+    ['LESIONES CUTÁNEAS',         history.lesiones?.length ? history.lesiones.join(', ') + (history.lesionesNota ? `\nNotas: ${history.lesionesNota}` : '') : null],
     ['EXAMEN FÍSICO',             history.examenFisico],
     ['DIAGNÓSTICO',               history.diagnostico],
     ['TRATAMIENTO',               history.tratamiento],
@@ -466,10 +467,13 @@ function openNewHistory(patientId) {
     const fieldIds = [
       'fieldPeso','fieldTalla','fieldPA','fieldFC','fieldTemp','fieldSatO2',
       'fieldMotivo','fieldEnfActual','fieldAntPersonal','fieldAntFamiliar',
-      'fieldExFisico','fieldDiagnostico','fieldTratamiento','fieldObservaciones'
+      'fieldExFisico','fieldDiagnostico','fieldTratamiento','fieldObservaciones',
+      'fieldLesionesNota'
     ];
     fieldIds.forEach(id => { const el = $(`#${id}`); if (el) el.value = ''; });
   }
+  // Limpiar checkboxes de lesiones siempre
+  document.querySelectorAll('input[name="lesiones"]').forEach(cb => cb.checked = false);
 
   $('#historyPatientId').value         = patientId;
   $('#historyPatientName').textContent = p.nombre;
@@ -505,12 +509,17 @@ function saveHistory() {
   const imc   = calcIMC(peso, talla);
   const cat   = imcCategory(imc);
 
+  const lesionesChecked = [...document.querySelectorAll('input[name="lesiones"]:checked')]
+    .map(cb => cb.value);
+
   const data = {
     patientId,
     peso,
     talla,
     imc,
     imcCategoria:       cat.label,
+    lesiones:           lesionesChecked,
+    lesionesNota:       $('#fieldLesionesNota').value.trim(),
     presionArterial:    $('#fieldPA').value.trim(),
     frecuenciaCardiaca: $('#fieldFC').value.trim(),
     temperatura:        $('#fieldTemp').value.trim(),
@@ -598,6 +607,7 @@ function renderHistoryList(query = '') {
             <dt>Sat. O2</dt><dd>${h.saturacionO2 ? h.saturacionO2 + '%' : '—'}</dd>
           </dl>
           ${h.tratamiento ? `<div class="section-title">Tratamiento</div><p style="font-size:.85rem">${escapeHtml(h.tratamiento)}</p>` : ''}
+          ${h.lesiones?.length ? `<div class="section-title">Lesiones cutáneas</div><p style="font-size:.85rem">${h.lesiones.map(l => `<span style="display:inline-block;background:#dbeafe;color:#1d4ed8;border-radius:20px;padding:.1rem .55rem;margin:.15rem;font-size:.75rem;font-weight:600">${escapeHtml(l)}</span>`).join('')}</p>${h.lesionesNota ? `<p style="font-size:.82rem;color:var(--text-muted);margin-top:.3rem">${escapeHtml(h.lesionesNota)}</p>` : ''}` : ''}
           ${h.observaciones ? `<div class="section-title">Observaciones</div><p style="font-size:.85rem">${escapeHtml(h.observaciones)}</p>` : ''}
         </div>
       </div>`;

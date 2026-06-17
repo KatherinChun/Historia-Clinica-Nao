@@ -667,6 +667,69 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   display: inline-block;
 }
 
+/* ---------- Lesiones Cutáneas ---------- */
+.lesiones-section {
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+}
+
+.lesiones-grupo {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.lesiones-grupo-titulo {
+  background: var(--surface-alt);
+  padding: .45rem .85rem;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 1px solid var(--border);
+}
+
+.lesiones-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: .4rem .5rem;
+}
+
+@media (max-width: 480px) {
+  .lesiones-grid { grid-template-columns: 1fr; }
+}
+
+.lesion-check {
+  display: flex;
+  align-items: flex-start;
+  gap: .45rem;
+  padding: .35rem .4rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+  font-size: .8rem;
+  line-height: 1.35;
+}
+
+.lesion-check:hover { background: var(--bg); }
+
+.lesion-check input[type="checkbox"] {
+  margin-top: .1rem;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.lesion-check span { color: var(--text); }
+.lesion-check strong { color: var(--primary-dark); font-weight: 700; }
+
+.lesion-check input:checked ~ span { color: var(--primary); }
+
 /* ---------- Animaciones ---------- */
 @keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeInUp  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
