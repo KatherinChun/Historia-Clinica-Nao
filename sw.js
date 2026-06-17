@@ -3,7 +3,7 @@
    Estrategia: Cache-first para assets, Network-first para datos
    ===================================================== */
 
-const CACHE_NAME = 'hce-v1.2.0';
+const CACHE_NAME = 'hce-v1.3.0';
 const STATIC_ASSETS = [
   './index.html',
   './styles.css',

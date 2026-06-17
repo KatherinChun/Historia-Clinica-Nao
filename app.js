@@ -284,12 +284,16 @@ function generatePDF(history) {
   y += 4;
 
   // Secciones de texto
+  const lesionesTexto = Array.isArray(history.lesiones) && history.lesiones.length
+    ? history.lesiones.join(', ') + (history.lesionesNota ? `\nNotas: ${history.lesionesNota}` : '')
+    : null;
+
   const sections = [
     ['MOTIVO DE CONSULTA',        history.motivoConsulta],
     ['ENFERMEDAD ACTUAL',         history.enfermedadActual],
     ['ANTECEDENTES PERSONALES',   history.antecedentePersonal],
     ['ANTECEDENTES FAMILIARES',   history.antecedenteFamiliar],
-    ['LESIONES CUTÁNEAS',         history.lesiones?.length ? history.lesiones.join(', ') + (history.lesionesNota ? `\nNotas: ${history.lesionesNota}` : '') : null],
+    ['LESIONES CUTÁNEAS',         lesionesTexto],
     ['EXAMEN FÍSICO',             history.examenFisico],
     ['DIAGNÓSTICO',               history.diagnostico],
     ['TRATAMIENTO',               history.tratamiento],

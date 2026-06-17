@@ -671,10 +671,11 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .lesiones-section {
   display: flex;
   flex-direction: column;
-  gap: .9rem;
+  gap: .75rem;
 }
 
 .lesiones-grupo {
+  background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -682,53 +683,73 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
 .lesiones-grupo-titulo {
   background: var(--surface-alt);
-  padding: .45rem .85rem;
-  font-size: .75rem;
+  padding: .5rem .9rem;
+  font-size: .78rem;
   font-weight: 700;
   color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: .05em;
   border-bottom: 1px solid var(--border);
+  letter-spacing: .02em;
 }
 
-.lesiones-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  padding: .4rem .5rem;
-}
-
-@media (max-width: 480px) {
-  .lesiones-grid { grid-template-columns: 1fr; }
-}
-
-.lesion-check {
+.lesiones-chips {
   display: flex;
-  align-items: flex-start;
-  gap: .45rem;
-  padding: .35rem .4rem;
+  flex-wrap: wrap;
+  gap: .5rem;
+  padding: .75rem .9rem;
+}
+
+.lesion-chip {
+  position: relative;
+  cursor: pointer;
+}
+
+.lesion-chip input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.lesion-chip span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background var(--transition);
-  font-size: .8rem;
-  line-height: 1.35;
+  padding: .45rem .75rem;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: all var(--transition);
+  line-height: 1.2;
+  text-align: center;
+  min-width: 90px;
 }
 
-.lesion-check:hover { background: var(--bg); }
-
-.lesion-check input[type="checkbox"] {
-  margin-top: .1rem;
-  flex-shrink: 0;
-  width: 15px;
-  height: 15px;
-  accent-color: var(--primary);
-  cursor: pointer;
+.lesion-chip span small {
+  font-size: .68rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: .15rem;
+  white-space: nowrap;
 }
 
-.lesion-check span { color: var(--text); }
-.lesion-check strong { color: var(--primary-dark); font-weight: 700; }
+.lesion-chip:hover span {
+  border-color: var(--accent);
+  background: #e0f7fa;
+  color: var(--primary);
+}
 
-.lesion-check input:checked ~ span { color: var(--primary); }
+.lesion-chip input:checked ~ span {
+  background: var(--primary);
+  border-color: var(--primary-dark);
+  color: #fff;
+}
+
+.lesion-chip input:checked ~ span small {
+  color: rgba(255,255,255,.8);
+}
 
 /* ---------- Animaciones ---------- */
 @keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
